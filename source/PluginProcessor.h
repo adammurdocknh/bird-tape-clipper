@@ -1,11 +1,8 @@
 #pragma once
 
+#include "StandardIncludes.h"
+#include "dsp/TapeBird.h"
 #include <juce_audio_processors/juce_audio_processors.h>
-
-#if (MSVC)
-#include "ipps.h"
-#endif
-
 class PluginProcessor : public juce::AudioProcessor
 {
 public:
@@ -38,6 +35,11 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    juce::AudioProcessorValueTreeState* getAPVTS();
+
+    juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
+
 private:
+    juce::AudioProcessorValueTreeState apvts;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginProcessor)
 };

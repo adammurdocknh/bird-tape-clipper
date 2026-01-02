@@ -3,14 +3,15 @@
 
 //==============================================================================
 PluginProcessor::PluginProcessor()
-     : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                     #endif
-                       )
+    : AudioProcessor (BusesProperties()
+#if !JucePlugin_IsMidiEffect
+    #if !JucePlugin_IsSynth
+              .withInput ("Input", juce::AudioChannelSet::stereo(), true)
+    #endif
+              .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
+#endif
+              ),
+      apvts (*this, nullptr, "PARAMETER", createLayout())
 {
 }
 
@@ -26,29 +27,29 @@ const juce::String PluginProcessor::getName() const
 
 bool PluginProcessor::acceptsMidi() const
 {
-   #if JucePlugin_WantsMidiInput
+#if JucePlugin_WantsMidiInput
     return true;
-   #else
+#else
     return false;
-   #endif
+#endif
 }
 
 bool PluginProcessor::producesMidi() const
 {
-   #if JucePlugin_ProducesMidiOutput
+#if JucePlugin_ProducesMidiOutput
     return true;
-   #else
+#else
     return false;
-   #endif
+#endif
 }
 
 bool PluginProcessor::isMidiEffect() const
 {
-   #if JucePlugin_IsMidiEffect
+#if JucePlugin_IsMidiEffect
     return true;
-   #else
+#else
     return false;
-   #endif
+#endif
 }
 
 double PluginProcessor::getTailLengthSeconds() const
@@ -58,8 +59,8 @@ double PluginProcessor::getTailLengthSeconds() const
 
 int PluginProcessor::getNumPrograms()
 {
-    return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
-                // so this should be at least 1, even if you're not really implementing programs.
+    return 1; // NB: some hosts don't cope very well if you tell them there are 0 programs,
+    // so this should be at least 1, even if you're not really implementing programs.
 }
 
 int PluginProcessor::getCurrentProgram()
@@ -99,33 +100,33 @@ void PluginProcessor::releaseResources()
 
 bool PluginProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-  #if JucePlugin_IsMidiEffect
+#if JucePlugin_IsMidiEffect
     juce::ignoreUnused (layouts);
     return true;
-  #else
+#else
     // This is the place where you check if the layout is supported.
     // In this template code we only support mono or stereo.
     if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
-     && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
+        && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
         return false;
 
     // This checks if the input layout matches the output layout
-   #if ! JucePlugin_IsSynth
+    #if !JucePlugin_IsSynth
     if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
         return false;
-   #endif
+    #endif
 
     return true;
-  #endif
+#endif
 }
 
 void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
-                                              juce::MidiBuffer& midiMessages)
+    juce::MidiBuffer& midiMessages)
 {
     juce::ignoreUnused (midiMessages);
 
     juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
+    auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
     // In case we have more outputs than inputs, this code clears any output
@@ -159,7 +160,8 @@ bool PluginProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* PluginProcessor::createEditor()
 {
-    return new PluginEditor (*this);
+    //    return new PluginEditor (*this);
+    return new juce::GenericAudioProcessorEditor (*this);
 }
 
 //==============================================================================
@@ -169,6 +171,10 @@ void PluginProcessor::getStateInformation (juce::MemoryBlock& destData)
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
     juce::ignoreUnused (destData);
+
+    auto state = apvts.copyState();
+    std::unique_ptr<juce::XmlElement> xml (state.createXml());
+    copyXmlToBinary (*xml, destData);
 }
 
 void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
@@ -176,6 +182,74 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
     juce::ignoreUnused (data, sizeInBytes);
+
+    std::unique_ptr<juce::XmlElement> xmlState (getXmlFromBinary (data, sizeInBytes));
+    if (xmlState != nullptr)
+        if (xmlState->hasTagName (apvts.state.getType()))
+            apvts.replaceState (juce::ValueTree::fromXml (*xmlState));
+}
+
+juce::AudioProcessorValueTreeState* PluginProcessor::getAPVTS()
+{
+    return &apvts;
+}
+
+juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createLayout()
+{
+    std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
+
+    const auto dbAttributes = juce::AudioParameterFloatAttributes().withValueFromStringFunction ([] (const juce::String& text) {
+                                                                       return text.getFloatValue();
+                                                                   })
+                                  .withStringFromValueFunction ([] (float value, int) {
+                                      return juce::String (juce::Decibels::gainToDecibels (value), 1) + " dB";
+                                  });
+
+    const auto mixAttributes = juce::AudioParameterFloatAttributes().withStringFromValueFunction ([] (float value, int) {
+                                                                        return juce::String (value, 0) + " %";
+                                                                    })
+                                   .withValueFromStringFunction ([] (const juce::String& text) {
+                                       return text.getFloatValue();
+                                   });
+
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID (g_inputTrimID, kParameterVersionHint),
+        "Input Trim",
+        juce::NormalisableRange<float> (-10.0f, 10.0f, 0.1f),
+        0.0f,
+        dbAttributes));
+
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { g_processID, kParameterVersionHint },
+        "Process",
+        juce::NormalisableRange<float> { 0.0f, 100.0f, 0.1f },
+        1.0f));
+
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID (g_outputTrimID, kParameterVersionHint),
+        "Output Trim",
+        juce::NormalisableRange<float> (-6.0f, 6.0f, 0.1f),
+        0.0f,
+        dbAttributes));
+
+    params.push_back (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID (g_brightnessID, kParameterVersionHint),
+        "Brightness",
+        g_brightnessChoices,
+        BrightnessOptions::Brightness_Gold));
+
+    params.push_back (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID (g_typeID, kParameterVersionHint),
+        "Type",
+        g_typeChoices,
+        TypeOptions::Type_Radiant));
+
+    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID (g_mixID, kParameterVersionHint),
+        "Mix",
+        juce::NormalisableRange<float> (0.0f, 100.0f, 0.1f),
+        100.0f,
+        mixAttributes));
+
+    params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID (g_autoGainID, kParameterVersionHint),
+        "Auto Gain",
+        true));
+
+    return { params.begin(), params.end() };
 }
 
 //==============================================================================
