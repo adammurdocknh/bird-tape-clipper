@@ -87,9 +87,14 @@ void PluginProcessor::changeProgramName (int index, const juce::String& newName)
 //==============================================================================
 void PluginProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
     juce::ignoreUnused (sampleRate, samplesPerBlock);
+
+    juce::dsp::ProcessSpec spec;
+    spec.sampleRate = sampleRate;
+    spec.maximumBlockSize = static_cast<juce::uint32> (samplesPerBlock);
+    spec.numChannels = static_cast<juce::uint32> (getTotalNumOutputChannels());
+
+    tapeBirdProcessor.prepare (spec);
 }
 
 void PluginProcessor::releaseResources()
@@ -126,6 +131,9 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     juce::ignoreUnused (midiMessages);
 
     juce::ScopedNoDenormals noDenormals;
+
+    updateParameters();
+
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
@@ -144,12 +152,9 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
-        juce::ignoreUnused (channelData);
-        // ..do something to the data...
-    }
+    juce::dsp::AudioBlock<float> block (buffer);
+    juce::dsp::ProcessContextReplacing<float> context (block);
+    tapeBirdProcessor.processBlock (context);
 }
 
 //==============================================================================
@@ -202,7 +207,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createLayou
                                                                        return text.getFloatValue();
                                                                    })
                                   .withStringFromValueFunction ([] (float value, int) {
-                                      return juce::String (juce::Decibels::gainToDecibels (value), 1) + " dB";
+                                      return juce::String (value, 0) + " dB";
                                   });
 
     const auto mixAttributes = juce::AudioParameterFloatAttributes().withStringFromValueFunction ([] (float value, int) {
@@ -221,7 +226,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createLayou
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { g_processID, kParameterVersionHint },
         "Process",
         juce::NormalisableRange<float> { 0.0f, 100.0f, 0.1f },
-        1.0f));
+        0.0f));
 
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID (g_outputTrimID, kParameterVersionHint),
         "Output Trim",
@@ -234,10 +239,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createLayou
         g_brightnessChoices,
         BrightnessOptions::Brightness_Gold));
 
-    params.push_back (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID (g_typeID, kParameterVersionHint),
+    params.push_back (std::make_unique<juce::AudioParameterChoice> (juce::ParameterID (g_modeID, kParameterVersionHint),
         "Type",
-        g_typeChoices,
-        TypeOptions::Type_Radiant));
+        g_modeChoices,
+        ModeOptions::ModeOptions_Radiant));
 
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID (g_mixID, kParameterVersionHint),
         "Mix",
@@ -250,6 +255,25 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createLayou
         true));
 
     return { params.begin(), params.end() };
+}
+
+void PluginProcessor::updateParameters()
+{
+    const auto inputTrim = apvts.getRawParameterValue (g_inputTrimID)->load();
+    const auto process = apvts.getRawParameterValue (g_processID)->load();
+    const auto outputTrim = apvts.getRawParameterValue (g_outputTrimID)->load();
+    const auto brightness = static_cast<BrightnessOptions> (juce::roundToInt (apvts.getRawParameterValue (g_brightnessID)->load()));
+    const auto mode = static_cast<ModeOptions> (juce::roundToInt (apvts.getRawParameterValue (g_modeID)->load()));
+    const auto mix = apvts.getRawParameterValue (g_mixID)->load();
+    const auto autoGain = static_cast<bool> (juce::roundToInt (apvts.getRawParameterValue (g_autoGainID)->load()));
+
+    tapeBirdProcessor.setInputTrim (inputTrim);
+    tapeBirdProcessor.setProcessAmount (process);
+    tapeBirdProcessor.setOutputTrim (outputTrim);
+    tapeBirdProcessor.setBrightnessOption (brightness);
+    tapeBirdProcessor.setModeOption (mode);
+    tapeBirdProcessor.setMix (mix);
+    tapeBirdProcessor.setAutoGainEnabled (autoGain);
 }
 
 //==============================================================================

@@ -37,9 +37,14 @@ public:
 
     juce::AudioProcessorValueTreeState* getAPVTS();
 
+private:
     juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
 
-private:
     juce::AudioProcessorValueTreeState apvts;
+
+    void updateParameters();
+
+    TapeBird tapeBirdProcessor;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginProcessor)
 };

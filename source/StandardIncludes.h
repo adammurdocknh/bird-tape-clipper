@@ -12,7 +12,7 @@ static const juce::String g_inputTrimID = "INPUT-TRIM";
 static const juce::String g_processID = "PROCESS";
 static const juce::String g_outputTrimID = "OUTPUT-TRIM";
 static const juce::String g_brightnessID = "BRIGHTNESS";
-static const juce::String g_typeID = "TYPE";
+static const juce::String g_modeID = "MODE";
 static const juce::String g_mixID = "MIX";
 static const juce::String g_autoGainID = "AUTO-GAIN";
 
@@ -24,12 +24,12 @@ enum BrightnessOptions {
     Brightness_Sapphire
 };
 
-static const juce::StringArray g_typeChoices = { "Luminescent", "Iridescent", "Radiant", "Dark Essence", "Luster" };
+static const juce::StringArray g_modeChoices = { "Luminescent", "Iridescent", "Radiant", "Dark Essence", "Luster" };
 
-enum TypeOptions {
-    Type_Luminescent = 0,
-    Type_Iridescent,
-    Type_Radiant,
-    Type_DarkEssence,
-    Type_Luster
+enum ModeOptions {
+    ModeOptions_Luminescent = 0,
+    ModeOptions_Iridescent,
+    ModeOptions_Radiant,
+    ModeOptions_DarkEssence,
+    ModeOptions_Luster
 };
