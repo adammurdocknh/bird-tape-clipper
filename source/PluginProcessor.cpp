@@ -244,12 +244,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createLayou
         g_modeChoices,
         ModeOptions::ModeOptions_Radiant));
 
-    params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID (g_mixID, kParameterVersionHint),
-        "Mix",
-        juce::NormalisableRange<float> (0.0f, 100.0f, 0.1f),
-        100.0f,
-        mixAttributes));
-
     params.push_back (std::make_unique<juce::AudioParameterBool> (juce::ParameterID (g_autoGainID, kParameterVersionHint),
         "Auto Gain",
         true));
@@ -264,7 +258,6 @@ void PluginProcessor::updateParameters()
     const auto outputTrim = apvts.getRawParameterValue (g_outputTrimID)->load();
     const auto brightness = static_cast<BrightnessOptions> (juce::roundToInt (apvts.getRawParameterValue (g_brightnessID)->load()));
     const auto mode = static_cast<ModeOptions> (juce::roundToInt (apvts.getRawParameterValue (g_modeID)->load()));
-    const auto mix = apvts.getRawParameterValue (g_mixID)->load();
     const auto autoGain = static_cast<bool> (juce::roundToInt (apvts.getRawParameterValue (g_autoGainID)->load()));
 
     tapeBirdProcessor.setInputTrim (inputTrim);
@@ -272,7 +265,6 @@ void PluginProcessor::updateParameters()
     tapeBirdProcessor.setOutputTrim (outputTrim);
     tapeBirdProcessor.setBrightnessOption (brightness);
     tapeBirdProcessor.setModeOption (mode);
-    tapeBirdProcessor.setMix (mix);
     tapeBirdProcessor.setAutoGainEnabled (autoGain);
 }
 

@@ -48,17 +48,12 @@ public:
     void setOutputTrim (float trimInDecibels);
     void setBrightnessOption (BrightnessOptions option);
     void setModeOption (ModeOptions option);
-    void setMix (float mixPercent);
     void setAutoGainEnabled (bool isEnabled);
 
     void reset();
 
 private:
-    void update();
-
     juce::dsp::Gain<float> m_inputGainProcessor, m_outputGainProcessor, m_autoGainProcessor;
-
-    juce::dsp::DryWetMixer<float> m_dryWetMixer;
 
     std::vector<TapeBirdMono> m_monoProcessors;
 };

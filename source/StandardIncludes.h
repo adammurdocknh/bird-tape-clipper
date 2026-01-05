@@ -13,7 +13,6 @@ static const juce::String g_processID = "PROCESS";
 static const juce::String g_outputTrimID = "OUTPUT-TRIM";
 static const juce::String g_brightnessID = "BRIGHTNESS";
 static const juce::String g_modeID = "MODE";
-static const juce::String g_mixID = "MIX";
 static const juce::String g_autoGainID = "AUTO-GAIN";
 
 static const juce::StringArray g_brightnessChoices = { "Opal", "Gold", "Sapphire" };

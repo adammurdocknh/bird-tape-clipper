@@ -310,10 +310,6 @@ TapeBird::TapeBird()
 
     m_autoGainProcessor.setGainLinear (1.0f);
     m_autoGainProcessor.setRampDurationSeconds (0.01);
-
-    m_dryWetMixer = juce::dsp::DryWetMixer<float> (0);
-    m_dryWetMixer.setMixingRule (juce::dsp::DryWetMixer<float>::MixingRule::linear);
-    m_dryWetMixer.setWetMixProportion (1.f);
 }
 
 void TapeBird::prepare (juce::dsp::ProcessSpec& spec)
@@ -321,7 +317,6 @@ void TapeBird::prepare (juce::dsp::ProcessSpec& spec)
     m_inputGainProcessor.prepare (spec);
     m_outputGainProcessor.prepare (spec);
     m_autoGainProcessor.prepare (spec);
-    m_dryWetMixer.prepare (spec);
 
     if (spec.numChannels > m_monoProcessors.size())
     {
@@ -345,8 +340,6 @@ void TapeBird::processBlock (juce::dsp::ProcessContextReplacing<float>& context)
     const auto numChannels = inputBlock.getNumChannels();
     const auto numSamples = inputBlock.getNumSamples();
 
-    m_dryWetMixer.pushDrySamples (inputBlock);
-
     m_inputGainProcessor.process (context);
 
     for (size_t channel = 0; channel < numChannels; ++channel)
@@ -360,8 +353,6 @@ void TapeBird::processBlock (juce::dsp::ProcessContextReplacing<float>& context)
 
     m_outputGainProcessor.process (context);
     m_autoGainProcessor.process (context);
-
-    m_dryWetMixer.mixWetSamples (outputBlock);
 }
 
 void TapeBird::setInputTrim (float trimInDecibels)
@@ -392,10 +383,14 @@ void TapeBird::setModeOption (ModeOptions option)
         monoProcessor.setModeOption (option);
 }
 
-void TapeBird::setMix (float mixPercent)
+void TapeBird::reset()
 {
-    const float wetProportion = juce::jlimit (0.0f, 1.0f, mixPercent / 100.0f);
-    m_dryWetMixer.setWetMixProportion (wetProportion);
+    m_inputGainProcessor.reset();
+    m_outputGainProcessor.reset();
+    m_autoGainProcessor.reset();
+
+    for (auto& monoProcessor : m_monoProcessors)
+        monoProcessor.reset();
 }
 
 void TapeBird::setAutoGainEnabled (bool isEnabled)
