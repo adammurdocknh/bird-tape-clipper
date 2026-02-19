@@ -8,15 +8,15 @@ public:
     TapeBirdMono() = default;
     ~TapeBirdMono() = default;
     void prepare (double sampleRate);
-    float processSample (float x);
-    float processSat (float x);
-    void setProcessAmount (float processAmount);
+    double processSample (double x);
+    double processSat (double x);
+    void setProcessAmount (double processAmount);
     void setBrightnessOption (BrightnessOptions option);
     void setModeOption (ModeOptions option);
 
     void reset();
 
-    float getLinearGainValue();
+    double getLinearGainValue();
 
 private:
     void update();
@@ -24,13 +24,16 @@ private:
     BrightnessOptions m_brightness_option = Brightness_Gold;
     ModeOptions m_mode_option = ModeOptions_Radiant;
 
-    int m_sat_type;
+    int m_sat_type{};
 
-    bool m_g0;
+    bool m_g0{};
 
-    float m_sr_scale = 1.f;
+    double m_sr_scale = 1.f;
 
-    float m_a3, m_f1, m_p20, m_p24, m_lpf_k, m_hpf_k, m_auto_gain_a1, m_auto_gain_a2, m_s, m_prev_x, m_processing = { 0.0f };
+    double m_a3 = 0.0, m_f1 = 0.0, m_p20 = 0.0, m_p24 = 0.0,
+           m_lpf_k = 0.0, m_hpf_k = 0.0,
+           m_auto_gain_a1 = 0.0, m_auto_gain_a2 = 0.0,
+           m_s = 0.0, m_prev_x = 0.0, m_processing = 0.0;
 };
 
 class TapeBird
@@ -43,9 +46,9 @@ public:
 
     void processBlock (juce::dsp::ProcessContextReplacing<float>& context);
 
-    void setInputTrim (float trimInDecibels);
-    void setProcessAmount (float processAmount);
-    void setOutputTrim (float trimInDecibels);
+    void setInputTrim (double trimInDecibels);
+    void setProcessAmount (double processAmount);
+    void setOutputTrim (double trimInDecibels);
     void setBrightnessOption (BrightnessOptions option);
     void setModeOption (ModeOptions option);
     void setAutoGainEnabled (bool isEnabled);

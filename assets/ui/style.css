@@ -1,0 +1,775 @@
+/* Embedded Fonts */
+@font-face {
+  font-family: 'Inter';
+  src: url('./fonts/Inter-Regular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Responsive Scaling */
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #000;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+#plugin-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Container */
+#plugin-container {
+  position: relative;
+  width: 800px;
+  height: 600px;
+  background-color: #1a1a1a;
+  overflow: hidden;
+  transform-origin: center center;
+}
+
+/* Base element */
+.element {
+  position: absolute;
+}
+
+/* Styled Knob Layers */
+.styled-knob {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.styled-knob-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.knob-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.knob-layer svg {
+  width: 100%;
+  height: 100%;
+}
+
+.knob-indicator {
+  transform-origin: center center;
+  transition: transform 0.05s ease-out;
+}
+
+.knob-arc,
+.knob-glow {
+  transition: opacity 0.05s ease-out;
+}
+
+/* Styled Slider Layers */
+.styled-slider {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.styled-slider-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.slider-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.slider-layer svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Track - static background */
+.slider-track {
+  z-index: 1;
+}
+
+/* Fill - animated via clip-path (JS updates) */
+.slider-fill {
+  z-index: 2;
+  transition: clip-path 0.05s ease-out;
+}
+
+/* Thumb - animated via transform translate (JS updates) */
+.slider-thumb {
+  z-index: 3;
+  transition: transform 0.05s ease-out;
+}
+
+/* Range Slider - dual thumbs */
+.styled-rangeslider .slider-thumb-low {
+  z-index: 3;
+}
+
+.styled-rangeslider .slider-thumb-high {
+  z-index: 3;
+}
+
+.styled-rangeslider .slider-thumb-low.active {
+  z-index: 4;
+}
+
+.styled-rangeslider .slider-thumb-high.active {
+  z-index: 4;
+}
+
+/* Styled Button Layers */
+.styled-button {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.styled-button-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.button-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* CRITICAL: No transition - instant opacity toggle per CONTEXT.md decision */
+  transition: none;
+}
+
+.button-layer svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Button state layers - fixed z-index ordering */
+.button-normal {
+  z-index: 1;
+}
+
+.button-pressed {
+  z-index: 2;
+}
+
+.button-icon {
+  z-index: 3;
+}
+
+.button-label {
+  z-index: 4;
+}
+
+/* Toggle Switch layers */
+.button-on {
+  z-index: 2;
+}
+
+.button-off {
+  z-index: 1;
+}
+
+.button-indicator {
+  z-index: 3;
+}
+
+/* Power Button LED */
+.button-led {
+  z-index: 3;
+}
+
+/* Rocker Switch position layers */
+.button-position-0,
+.button-position-1,
+.button-position-2 {
+  z-index: 1;
+}
+
+/* Rotary Switch layers */
+.button-base {
+  z-index: 1;
+}
+
+.button-selector {
+  z-index: 2;
+  transition: transform 0.1s ease-out;
+  transform-origin: center center;
+}
+
+/* Segment Button highlight */
+.button-highlight {
+  z-index: 2;
+  transition: clip-path 0.1s ease-out;
+}
+
+/* Styled Meter Layers */
+.styled-meter {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.styled-meter-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.meter-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.meter-layer svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Meter body - static background */
+.meter-body {
+  z-index: 1;
+}
+
+/* Zone fill layers - animated via clip-path (JS updates) */
+.meter-fill-green {
+  z-index: 2;
+  transition: clip-path 0.05s ease-out;
+}
+
+.meter-fill-yellow {
+  z-index: 3;
+  transition: clip-path 0.05s ease-out;
+}
+
+.meter-fill-red {
+  z-index: 4;
+  transition: clip-path 0.05s ease-out;
+}
+
+/* Single fill fallback (if no zone layers) */
+.meter-fill {
+  z-index: 2;
+  transition: clip-path 0.05s ease-out;
+}
+
+/* Scale markings - on top of fills */
+.meter-scale {
+  z-index: 5;
+}
+
+/* Peak hold indicator - animated via bottom positioning */
+.meter-peak {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 6;
+  transition: bottom 0.05s ease-out;
+}
+
+/* Horizontal meter - container rotated -90deg */
+.styled-meter[data-orientation="horizontal"] .styled-meter-container {
+  transform: rotate(-90deg);
+  transform-origin: center center;
+}
+
+/* Label and Value Display Styles */
+.knob-label, .slider-label {
+  position: absolute;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.knob-label-top, .slider-label-top {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 4px;
+}
+
+.knob-label-bottom, .slider-label-bottom {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 4px;
+}
+
+.knob-label-left, .slider-label-left {
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-right: 4px;
+}
+
+.knob-label-right, .slider-label-right {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 4px;
+}
+
+.knob-value, .slider-value {
+  position: absolute;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.knob-value-top, .slider-value-top {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 4px;
+}
+
+.knob-value-bottom, .slider-value-bottom {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 4px;
+}
+
+.knob-value-left, .slider-value-left {
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-right: 4px;
+}
+
+.knob-value-right, .slider-value-right {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 4px;
+}
+
+/* Element-specific styles */
+#input-meter-left {
+  /* Vertical meter */
+  position: relative;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+#input-meter-left .meter-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 2px;
+}
+
+#input-trim-knob {
+  cursor: pointer;
+  user-select: none;
+}
+
+#input-meter-right {
+  /* Vertical meter */
+  position: relative;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+#input-meter-right .meter-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 2px;
+}
+
+#output-meter-right {
+  /* Vertical meter */
+  position: relative;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+#output-meter-right .meter-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 2px;
+}
+
+#output-meter-left {
+  /* Vertical meter */
+  position: relative;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+#output-meter-left .meter-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 2px;
+}
+
+#output-trim-knob {
+  cursor: pointer;
+  user-select: none;
+}
+
+#process {
+  /* Knob styles - SVG handles visual rendering */
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Toggle Switch */
+#tilt-compensation-toggle {
+  position: relative;
+  border-radius: 12.5px;
+  border: 2px solid #6b7280;
+  cursor: pointer;
+  transition: none;
+  box-sizing: border-box;
+}
+
+#tilt-compensation-toggle[data-on="false"] {
+  background-color: #374151;
+}
+
+#tilt-compensation-toggle[data-on="true"] {
+  background-color: #4b76a2;
+}
+
+#tilt-compensation-toggle .track {
+  display: none;
+}
+
+#tilt-compensation-toggle .thumb {
+  position: absolute;
+  width: 17px;
+  height: 17px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  top: 2px;
+  transition: none;
+}
+
+#tilt-compensation-toggle[data-on="false"] .thumb {
+  left: 2px;
+}
+
+#tilt-compensation-toggle[data-on="true"] .thumb {
+  left: 27px;
+}
+
+#tilt-compensation-toggle .label-off,
+#tilt-compensation-toggle .label-on {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  font-family: Inter, system-ui, sans-serif;
+  color: #888888;
+  user-select: none;
+}
+
+#tilt-compensation-toggle .label-off {
+  left: -30px;
+}
+
+#tilt-compensation-toggle .label-on {
+  right: -30px;
+}
+
+#timbre-tilt-slider {
+  cursor: ew-resize;
+  user-select: none;
+  position: relative;
+}
+#timbre-tilt-slider .crossfade-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  font-size: 10px;
+  position: relative;
+  z-index: 6;
+}
+#timbre-tilt-slider .slider-track {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 6px;
+  transform: translateY(-50%);
+  border-radius: 0;
+  z-index: 0;
+}
+#timbre-tilt-slider .slider-fill {
+  position: absolute;
+  top: 50%;
+  height: 6px;
+  transform: translateY(-50%);
+  border-radius: 0;
+  z-index: 1;
+}
+#timbre-tilt-slider .center-detent {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  z-index: 5;
+}
+#timbre-tilt-slider .slider-thumb {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 20px;
+  transform: translate(-50%, -50%);
+  border-radius: 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  z-index: 4;
+}
+
+#tilt-on-label {
+  /* Label */
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #888888;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  
+  justify-content: center;
+  
+  user-select: none;
+}
+
+#tilt-off-label {
+  /* Label */
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #888888;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  
+  justify-content: center;
+  
+  user-select: none;
+}
+
+#tilt-compensation-label {
+  /* Label */
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #ffffff;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  
+  justify-content: center;
+  
+  user-select: none;
+}
+
+/* Rotary Switch */
+#brightness-switch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  user-select: none;
+}
+
+#brightness-switch svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+#brightness-switch svg circle,
+#brightness-switch svg line {
+  transition: none;
+}
+
+#brightness-switch svg text {
+  font-family: Inter, system-ui, sans-serif;
+}
+
+/* Legend layout - labels displayed as list */
+#brightness-switch .labels-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+#brightness-switch .labels-legend .label {
+  color: #888888;
+  user-select: none;
+}
+
+#brightness-switch .labels-legend .label[data-active="true"] {
+  opacity: 1;
+  font-weight: bold;
+}
+
+#brightness-switch .labels-legend .label[data-active="false"] {
+  opacity: 0.5;
+  font-weight: normal;
+}
+
+#brightness-label {
+  /* Label */
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #ffffff;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  
+  justify-content: center;
+  
+  user-select: none;
+}
+
+#timbre-tilt-label {
+  /* Label */
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #ffffff;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  
+  justify-content: center;
+  
+  user-select: none;
+}
+
+/* Rotary Switch */
+#mode-switch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  user-select: none;
+}
+
+#mode-switch svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+#mode-switch svg circle,
+#mode-switch svg line {
+  transition: none;
+}
+
+#mode-switch svg text {
+  font-family: Inter, system-ui, sans-serif;
+}
+
+/* Legend layout - labels displayed as list */
+#mode-switch .labels-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+#mode-switch .labels-legend .label {
+  color: #888888;
+  user-select: none;
+}
+
+#mode-switch .labels-legend .label[data-active="true"] {
+  opacity: 1;
+  font-weight: bold;
+}
+
+#mode-switch .labels-legend .label[data-active="false"] {
+  opacity: 0.5;
+  font-weight: normal;
+}
+
+#mode-label {
+  /* Label */
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #ffffff;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  
+  justify-content: center;
+  
+  user-select: none;
+}
+
+/* Icon Button */
+#icon-button {
+  background-color: #374151;
+  border: 2px solid #6b7280;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: none;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+#icon-button[data-pressed="true"] {
+  filter: brightness(0.85);
+}
+
+#icon-button .icon {
+  width: 70%;
+  height: 70%;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#icon-button .icon svg {
+  width: 100%;
+  height: 100%;
+}

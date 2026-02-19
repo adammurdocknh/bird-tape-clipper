@@ -2,43 +2,44 @@
 
 void TapeBirdMono::prepare (double sampleRate)
 {
-    m_sr_scale = static_cast<float> (sampleRate) / 44100.0f;
+    m_sr_scale = 1.0 / (static_cast<double> (sampleRate) / 44100.0);
     update();
+    reset();
 }
 
-float TapeBirdMono::processSample (float x)
+//double TapeBirdMono::processSample (double x)
+//{
+//
+//    const double processing = m_processing * m_a3;
+//    const double x1 = m_hpf_k * x + (x - m_prev_x);
+//    const double x2 = x1 * m_f1 + x1;
+//    const double x3 = (!m_g0) ? x : x2;
+//    const double x4 = m_mode_option == ModeOptions_DarkEssence ? processSat (x2 * processing) : processSat (x2);
+//    const double x5 = processSat (x4 * processing * m_p20 + x3);
+//
+//    m_prev_x = x;
+//    m_s += (x5 - m_s) * m_lpf_k;
+////    m_s += std::max((x5 - m_s) * m_lpf_k, m_fDenormal);// - m_fDenormal;
+//    double y = processing * (m_s - x * m_p24);
+//    if (m_mode_option == ModeOptions_DarkEssence)
+//        y *= 0.5f;
+//
+//    y += x;
+//    return y;
+//}
+
+double TapeBirdMono::processSample (double x)
 {
-    //      processing = this.processing * this.a3;
-
-    //   x1 = this.hpf_k * x + (x - this.prev_x);
-    //   x2 = x1 * this.f1 + x1;
-    //   x3 = (!this.g0) ? x : x2;
-    //   x4 = (this.model_type == 3) ? this.Phoenix_sat(x2 * processing) : this.Phoenix_sat(x2);
-    //   x5 = this.Phoenix_sat(x4 * processing * this.p20 + x3);
-
-    //   this.prev_x = x;
-
-    //   this.s += (x5 - this.s) * this.lpf_k;
-
-    //   y = processing * (this.s - x * this.p24);
-
-    //   (this.model_type == 3) ? ( y *= 0.5 );
-
-    //   y += x;
-
-    //   this.use_auto_gain ? ( y *= this.auto_gain );
-
-    //   y;
-    const float processing = m_processing * m_a3;
-    const float x1 = m_hpf_k * x + (x - m_prev_x);
-    const float x2 = x1 * m_f1 + x1;
-    const float x3 = (!m_g0) ? x : x2;
-    const float x4 = m_mode_option == ModeOptions_DarkEssence ? processSat (x2 * (processing)) : processSat (x2);
-    const float x5 = processSat (x4 * processing * m_p20 + x3);
+    const double processing = m_processing * m_a3;
+    const double x1 = m_hpf_k * x + (x - m_prev_x);
+    const double x2 = x1 * m_f1 + x1;
+    const double x3 = (!m_g0) ? x : x2;
+    const double x4 = m_mode_option == ModeOptions_DarkEssence ? processSat (x2 * processing) : processSat (x2);
+    const double x5 = processSat (x4 * processing * m_p20 + x3);
 
     m_prev_x = x;
-    m_s += (x5 - m_s) * m_lpf_k;
-    float y = processing * (m_s - x * m_p24);
+    m_s += (x5 - m_s) * m_lpf_k; // Simple, just like the JSFX
+    double y = processing * (m_s - x * m_p24);
     if (m_mode_option == ModeOptions_DarkEssence)
         y *= 0.5f;
 
@@ -46,40 +47,40 @@ float TapeBirdMono::processSample (float x)
     return y;
 }
 
-float TapeBirdMono::processSat (float x)
+double TapeBirdMono::processSat (double x)
 {
     // Certain modes share clipping/saturation functions which is why we have three in here even though there are 5 modes.
     switch (m_sat_type)
     {
         case 0:
         {
-            const float clipped = juce::jlimit (-1.0f, 1.0f, x);
-            const float x2 = clipped * clipped;
-            const float x4 = x2 * x2;
-            const float x6 = x4 * x2;
-            const float x8 = x4 * x4;
+            const double clipped = juce::jlimit (-1.0, 1.0, x);
+            const double x2 = clipped * clipped;
+            const double x4 = x2 * x2;
+            const double x6 = x4 * x2;
+            const double x8 = x4 * x4;
 
             return x * 2.827568855 + x2 * 0.0003903798913 + x2 * x * -4.17220229 + x4 * -0.0001107320401 + x4 * x * 0.523459874 + x6 * 0.0002768079893 + x6 * x * -0.423546883 + x8 * -0.001448632 + x8 * x * 3.224580615 + x8 * x2 * 0.002728704 + x8 * x2 * x * -5.495344862 + x8 * x4 * -0.002846356 + x8 * x4 * x * 5.449768693 + x8 * x6 * 0.001310366 + x8 * x6 * x * -2.414078731;
             break;
         }
         case 1:
         {
-            const float clipped = juce::jlimit (-0.991184403f, 0.990821248f, x);
-            const float x2 = clipped * clipped;
-            const float x4 = x2 * x2;
-            const float x6 = x4 * x2;
-            const float x8 = x4 * x4;
+            const double clipped = juce::jlimit (-0.991184403, 0.990821248, x);
+            const double x2 = clipped * clipped;
+            const double x4 = x2 * x2;
+            const double x6 = x4 * x2;
+            const double x8 = x4 * x4;
 
             return x * 1.501040337 + x2 * -0.0002757478168 + x2 * x * -0.301802438 + x4 * 0.003273802 + x4 * x * 1.786333688 + x6 * -0.046104732 + x6 * x * -24.582679252 + x8 * 0.110553367 + x8 * x * 41.112226106 + x8 * x2 * -0.092987632 + x8 * x2 * x * -16.724196818 + x8 * x4 * 0.01857341 + x8 * x4 * x * -9.331919223 + x8 * x6 * 0.006696015 + x8 * x6 * x * 6.543207186;
             break;
         }
         case 2:
         {
-            const float clipped = juce::jlimit (-0.991022224f, 0.990984424f, x);
-            const float x2 = clipped * clipped;
-            const float x4 = x2 * x2;
-            const float x6 = x4 * x2;
-            const float x8 = x4 * x4;
+            const double clipped = juce::jlimit (-0.991022224, 0.990984424, x);
+            const double x2 = clipped * clipped;
+            const double x4 = x2 * x2;
+            const double x6 = x4 * x2;
+            const double x8 = x4 * x4;
 
             return x * 2.063930806 + x2 * 0.0002008141989 + x2 * x * -0.414990906 + x4 * -0.003741183 + x4 * x * 2.456380956 + x6 * 0.03108163 + x6 * x * -33.802027499 + x8 * -0.092816819 + x8 * x * 56.531406839 + x8 * x2 * 0.134928028 + x8 * x2 * x * -22.998647073 + x8 * x4 * -0.098216457 + x8 * x4 * x * -12.829323005 + x8 * x6 * 0.028676158 + x8 * x6 * x * 8.996306767;
             break;
@@ -87,13 +88,13 @@ float TapeBirdMono::processSat (float x)
         default:
         {
             jassertfalse; // Should not get here
-            break;
             return x;
+            break;
         }
     }
 }
 
-void TapeBirdMono::setProcessAmount (float processAmount)
+void TapeBirdMono::setProcessAmount (double processAmount)
 {
     // Set process amount code here
     m_processing = processAmount;
@@ -123,9 +124,9 @@ void TapeBirdMono::reset()
     m_s = 0.0f;
 }
 
-float TapeBirdMono::getLinearGainValue()
+double TapeBirdMono::getLinearGainValue()
 {
-    return 1.f + m_processing * m_auto_gain_a1 + m_processing * m_processing * m_auto_gain_a2;
+    return 1.0 + m_processing * m_auto_gain_a1 + m_processing * m_processing * m_auto_gain_a2;
 }
 
 void TapeBirdMono::update()
@@ -249,7 +250,7 @@ void TapeBirdMono::update()
                     break;
             }
 
-            m_a3 = 1.f;
+            m_a3 = 1.0;
             m_f1 = .6875f;
             m_p20 = .27343899f;
             m_p24 = .1171875f;
@@ -344,10 +345,10 @@ void TapeBird::processBlock (juce::dsp::ProcessContextReplacing<float>& context)
 
     for (size_t channel = 0; channel < numChannels; ++channel)
     {
-        float* wetData = outputBlock.getChannelPointer (static_cast<int> (channel));
+        auto wetData = outputBlock.getChannelPointer (static_cast<int> (channel));
         for (size_t i = 0; i < numSamples; ++i)
         {
-            wetData[i] = m_monoProcessors[channel].processSample (wetData[i]);
+            wetData[i] = static_cast<float> (m_monoProcessors[channel].processSample (static_cast<double> (wetData[i])));
         }
     }
 
@@ -355,18 +356,18 @@ void TapeBird::processBlock (juce::dsp::ProcessContextReplacing<float>& context)
     m_autoGainProcessor.process (context);
 }
 
-void TapeBird::setInputTrim (float trimInDecibels)
+void TapeBird::setInputTrim (double trimInDecibels)
 {
     m_inputGainProcessor.setGainDecibels (trimInDecibels);
 }
 
-void TapeBird::setProcessAmount (float processAmount)
+void TapeBird::setProcessAmount (double processAmount)
 {
     for (auto& monoProcessor : m_monoProcessors)
-        monoProcessor.setProcessAmount (processAmount / 100.f);
+        monoProcessor.setProcessAmount (processAmount / 100.0);
 }
 
-void TapeBird::setOutputTrim (float trimInDecibels)
+void TapeBird::setOutputTrim (double trimInDecibels)
 {
     m_outputGainProcessor.setGainDecibels (trimInDecibels);
 }

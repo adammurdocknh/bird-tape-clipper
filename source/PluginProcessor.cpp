@@ -165,8 +165,8 @@ bool PluginProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* PluginProcessor::createEditor()
 {
-    //    return new PluginEditor (*this);
-    return new juce::GenericAudioProcessorEditor (*this);
+        return new PluginEditor (*this);
+//    return new juce::GenericAudioProcessorEditor (*this);
 }
 
 //==============================================================================
@@ -194,11 +194,6 @@ void PluginProcessor::setStateInformation (const void* data, int sizeInBytes)
             apvts.replaceState (juce::ValueTree::fromXml (*xmlState));
 }
 
-juce::AudioProcessorValueTreeState* PluginProcessor::getAPVTS()
-{
-    return &apvts;
-}
-
 juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createLayout()
 {
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
@@ -219,13 +214,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createLayou
 
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID (g_inputTrimID, kParameterVersionHint),
         "Input Trim",
-        juce::NormalisableRange<float> (-10.0f, 10.0f, 0.1f),
+        juce::NormalisableRange<float> (-18.0f, 18.0f, 0.1f),
         0.0f,
         dbAttributes));
 
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID { g_processID, kParameterVersionHint },
         "Process",
-        juce::NormalisableRange<float> { 0.0f, 100.0f, 0.1f },
+        juce::NormalisableRange<float> { 0.0f, 100.0f, 1.f },
         0.0f));
 
     params.push_back (std::make_unique<juce::AudioParameterFloat> (juce::ParameterID (g_outputTrimID, kParameterVersionHint),
